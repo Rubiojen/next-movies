@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useLocation, useHistory, useParams } from "react-router";
+import { useGetMovieDetails } from "helpers/useGetMovieDetails";
+import { useHistory, useParams } from "react-router";
 import StarRatings from "react-star-ratings";
 import styled from "styled-components";
 
@@ -72,32 +72,35 @@ const BackButton = styled.span`
 const regex = /(<([^>]+)>)/gi;
 
 const MovieDetails = () => {
-  const location = useLocation();
   const history = useHistory();
   let { id } = useParams();
-  const [movieDetails, setMovieDetails] = useState();
-  const { title, largeimage, rating, released, runtime = "", synopsis } =
-    movieDetails ?? {};
+  console.log(`id`, id);
+  const {
+    movieDetails,
+    isLoading,
+    isError,
+    errorMessage,
+  } = useGetMovieDetails({ id });
+  const {
+    title = "",
+    largeimage,
+    rating = 0,
+    released = "",
+    runtime = "",
+    synopsis = "",
+  } = movieDetails ?? {};
 
   const goBack = () => {
     history.goBack();
   };
 
-  useEffect(() => {
-    let movieDetails = location.state;
-    console.log(`location`, location);
-    if (movieDetails) {
-      localStorage.setItem(id, JSON.stringify(movieDetails));
-      setMovieDetails(movieDetails);
-    } else {
-      movieDetails = localStorage.getItem(id);
-      if (movieDetails) {
-        setMovieDetails(JSON.parse(movieDetails));
-      } else {
-        history.push("/");
-      }
-    }
-  }, [history, id, location]);
+  if (isLoading) {
+    return <div>Loading Movie Details...</div>;
+  }
+
+  if (isError) {
+    return <div>{errorMessage}</div>;
+  }
 
   return movieDetails ? (
     <>
